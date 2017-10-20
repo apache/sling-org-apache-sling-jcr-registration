@@ -36,9 +36,9 @@
     </description>
 
     <scm>
-        <connection>scm:svn:http://svn.apache.org/repos/asf/sling/trunk/bundles/jcr/registration</connection>
-        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/sling/trunk/bundles/jcr/registration</developerConnection>
-        <url>http://svn.apache.org/viewvc/sling/trunk/bundles/jcr/registration</url>
+        <connection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-jcr-registration.git</conncetion>
+        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-jcr-registration.git</developerConnection>
+        <url>https://gitbox.apache.org/repos/asf?p=sling-org-apache-sling-jcr-registration.git</url>
     </scm>
 
     <build>
