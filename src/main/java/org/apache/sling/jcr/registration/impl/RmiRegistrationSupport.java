@@ -52,6 +52,10 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 @Component(
         configurationPolicy = ConfigurationPolicy.REQUIRE,
         name = "org.apache.sling.jcr.jackrabbit.server.RmiRegistrationSupport",
+        property = {
+                "service.vendor=The Apache Software Foundation",
+                "service.description=RMI based Repository Registration"
+        },
         reference = {
                 @Reference(name = "Repository", policy = ReferencePolicy.DYNAMIC,
                         cardinality = ReferenceCardinality.MULTIPLE, service = Repository.class),

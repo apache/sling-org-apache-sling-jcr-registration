@@ -53,6 +53,10 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 @Component(
         configurationPolicy = ConfigurationPolicy.REQUIRE,
         name = "org.apache.sling.jcr.jackrabbit.server.JndiRegistrationSupport",
+        property = {
+                "service.vendor=The Apache Software Foundation",
+                "service.description=JNDI Repository Registration"
+        },
         reference = {
                 @Reference(name = "Repository", policy = ReferencePolicy.DYNAMIC,
                         bind = "bindRepository", unbind = "unbindRepository",
