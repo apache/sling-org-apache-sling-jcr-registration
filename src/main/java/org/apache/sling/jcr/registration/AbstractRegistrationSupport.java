@@ -258,7 +258,7 @@ public abstract class AbstractRegistrationSupport {
      * <li>Clear the OSGi ComponentContext field
      * </ol>
      *
-     * @param componentContext The OSGi <code>ComponentContext</code> of this
+     * @param context The OSGi <code>ComponentContext</code> of this
      *            component.
      */
     protected void deactivate(ComponentContext context) {
