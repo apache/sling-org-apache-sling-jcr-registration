@@ -27,17 +27,18 @@ import java.rmi.server.UnicastRemoteObject;
 
 import javax.jcr.Repository;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.References;
 import org.apache.jackrabbit.rmi.server.RemoteAdapterFactory;
 import org.apache.jackrabbit.rmi.server.ServerAdapterFactory;
 import org.apache.sling.jcr.registration.AbstractRegistrationSupport;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.log.LogService;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
+import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
 /**
  * The <code>RmiRegistrationSupport</code> extends the
@@ -47,30 +48,20 @@ import org.osgi.service.log.LogService;
  * Note: Currently only registries in this Java VM are supported. In the future
  * support for external registries may be added.
  */
-@Component(
-        immediate = true,
-        metatype = true,
-        label = "%rmi.name",
-        description = "%rmi.description",
-        name = "org.apache.sling.jcr.jackrabbit.server.RmiRegistrationSupport",
-        policy = ConfigurationPolicy.REQUIRE)
-@org.apache.felix.scr.annotations.Properties({
-    @Property(name = "service.vendor", value = "The Apache Software Foundation", propertyPrivate = true),
-    @Property(name = "service.description", value = "RMI based Repository Registration", propertyPrivate = true)
-})
-@References({
-    @Reference(
-            name = "Repository",
-            policy = ReferencePolicy.DYNAMIC,
-            cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE,
-            referenceInterface = Repository.class),
-    @Reference(referenceInterface=LogService.class,
-            bind="bindLog", unbind="unbindLog",
-            cardinality = ReferenceCardinality.OPTIONAL_UNARY, policy = ReferencePolicy.DYNAMIC)
-})
-public class RmiRegistrationSupport extends AbstractRegistrationSupport {
 
-    @Property(intValue = 1099, label = "%rmi.port.name", description = "%rmi.port.description")
+@Component(
+        configurationPolicy = ConfigurationPolicy.REQUIRE,
+        name = "org.apache.sling.jcr.jackrabbit.server.RmiRegistrationSupport",
+        reference = {
+                @Reference(name = "Repository", policy = ReferencePolicy.DYNAMIC,
+                        cardinality = ReferenceCardinality.MULTIPLE, service = Repository.class),
+                @Reference(name = "Log", policy = ReferencePolicy.DYNAMIC,
+                        bind = "bindLog", unbind = "unbindLog",
+                        cardinality = ReferenceCardinality.OPTIONAL, service = LogService.class),
+        }
+)
+@Designate(ocd = RmiRegistrationSupport.Configuration.class)
+public class RmiRegistrationSupport extends AbstractRegistrationSupport {
     public static final String PROP_REGISTRY_PORT = "port";
 
     private int registryPort;
@@ -79,6 +70,25 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
     private Registry registry;
 
     private boolean registryIsPrivate;
+
+    // ---------- Configuration ---------------------------------------------
+
+    @ObjectClassDefinition(name = "Apache Sling JCR Repository RMI Registrar",
+            description = "The RMI Registrar listens for embedded repositories " +
+                    " to be registered as services and registers them in an RMI registry under the " +
+                    " name specified in the \"name\" service property.")
+    public @interface Configuration {
+
+        @AttributeDefinition(
+                name = "Port Number",
+                description = "Port number of the RMI registry to use. The RMI Registrar first tries to " +
+                        "create a private RMI registry at this port. If this fails, an existing registry " +
+                        "is tried to connect at this port on local host. If this number is negative, " +
+                        "the RMI egistrar is disabled. If this number is higher than 65535, an error " +
+                        "message is logged and the RMI Registrar is also  disabled. If this number is " +
+                        "zero, the system default RMI Registry port 1099 is used.")
+        int port() default 1099;
+    }
 
     // ---------- SCR intergration ---------------------------------------------
 
@@ -310,5 +320,15 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
                 }
             }
         }
+    }
+
+    @Override
+    protected void bindLog(LogService log) {
+        super.bindLog(log);
+    }
+
+    @Override
+    protected void unbindLog(LogService log) {
+        super.unbindLog(log);
     }
 }

@@ -28,15 +28,16 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.References;
 import org.apache.sling.jcr.registration.AbstractRegistrationSupport;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.log.LogService;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
+import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
 
 /**
@@ -50,40 +51,41 @@ import org.osgi.service.log.LogService;
  * properties.
  */
 @Component(
-        immediate = true,
-        metatype = true,
-        label = "%jndi.name",
-        description = "%jndi.description",
+        configurationPolicy = ConfigurationPolicy.REQUIRE,
         name = "org.apache.sling.jcr.jackrabbit.server.JndiRegistrationSupport",
-        policy = ConfigurationPolicy.REQUIRE
-        )
-@org.apache.felix.scr.annotations.Properties({
-    @Property(
-            name = "java.naming.factory.initial",
-            value = "org.apache.jackrabbit.core.jndi.provider.DummyInitialContextFactory",
-            label = "%jndi.factory.name",
-            description = "%jndi.factory.description"),
-    @Property(
-            name = "java.naming.provider.url",
-            value = "http://sling.apache.org",
-            label = "%jndi.providerurl.name",
-            description = "%jndi.providerurl.description"),
-    @Property(name = "service.vendor", value = "The Apache Software Foundation", propertyPrivate = true),
-    @Property(name = "service.description", value = "JNDI Repository Registration", propertyPrivate = true)
-})
-@References({
-    @Reference(
-            name = "Repository",
-            policy = ReferencePolicy.DYNAMIC,
-            cardinality = ReferenceCardinality.OPTIONAL_MULTIPLE,
-            referenceInterface = Repository.class),
-    @Reference(referenceInterface=LogService.class,
-            bind="bindLog", unbind="unbindLog",
-            cardinality = ReferenceCardinality.OPTIONAL_UNARY, policy = ReferencePolicy.DYNAMIC)
-})
+        reference = {
+                @Reference(name = "Repository", policy = ReferencePolicy.DYNAMIC,
+                        bind = "bindRepository", unbind = "unbindRepository",
+                        cardinality = ReferenceCardinality.MULTIPLE, service = Repository.class),
+                @Reference(name = "Log", policy = ReferencePolicy.DYNAMIC,
+                        bind = "bindLog", unbind = "unbindLog",
+                        cardinality = ReferenceCardinality.OPTIONAL, service = LogService.class),
+        }
+)
+@Designate(ocd = JndiRegistrationSupport.Configuration.class)
 public class JndiRegistrationSupport extends AbstractRegistrationSupport {
 
     private Context jndiContext;
+
+    // ---------- Configuration ---------------------------------------------
+
+    @ObjectClassDefinition(name = "Apache Sling JCR Repository JNDI Registrar",
+            description = "The JNDI Registrar listens for embedded repositories " +
+                    "to be registered as services and registers them in the JNDI context under the " +
+                    "name specified in the \"name\" service property.")
+    public @interface Configuration {
+
+        @AttributeDefinition(
+                name = "Initial Context Factory",
+                description = "The fully qualified class name of the factory class that will create an initial context.")
+        String java_naming_factory_initial() default "org.apache.jackrabbit.core.jndi.provider.DummyInitialContextFactory";
+
+        @AttributeDefinition(
+                name = "Provider URL",
+                description = "An URL string for the service provider (e.g. ldap://somehost:389)")
+        String java_naming_provider_url() default "http://sling.apache.org";
+
+    }
 
     // ---------- SCR intergration ---------------------------------------------
 
@@ -182,5 +184,15 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
                     + name, ne);
             }
         }
+    }
+
+    @Override
+    protected void bindLog(LogService log) {
+        super.bindLog(log);
+    }
+
+    @Override
+    protected void unbindLog(LogService log) {
+        super.unbindLog(log);
     }
 }
