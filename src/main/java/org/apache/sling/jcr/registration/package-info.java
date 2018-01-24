@@ -23,8 +23,5 @@
  * class which may be extended by service exposing JCR Repository services
  * in any one non-OSGi registry such as RMI or JNDI.
  */
-@Version("1.1.1")
+@org.osgi.annotation.versioning.Version("1.1.1")
 package org.apache.sling.jcr.registration;
-
-
-import org.osgi.annotation.versioning.Version;
