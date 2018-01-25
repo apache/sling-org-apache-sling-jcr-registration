@@ -22,11 +22,10 @@
     <parent>
         <groupId>org.apache.sling</groupId>
         <artifactId>sling</artifactId>
-        <version>33-SNAPSHOT</version>
+        <version>33</version>
     </parent>
 
     <artifactId>org.apache.sling.jcr.registration</artifactId>
-    <packaging>jar</packaging>
     <version>1.0.5-SNAPSHOT</version>
 
     <name>Apache Sling JCR Repository Registration</name>
@@ -51,28 +50,6 @@
                 <groupId>biz.aQute.bnd</groupId>
                 <artifactId>bnd-baseline-maven-plugin</artifactId>
             </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-Category>
-                            sling,jcr
-                        </Bundle-Category>
-                        <Import-Package>
-                            javax.transaction.xa;resolution:=optional,
-                            *
-                        </Import-Package>
-                        <DynamicImport-Package>
-                            *
-                        </DynamicImport-Package>
-                        <Embed-Dependency>
-                            jackrabbit-core;inline=org/apache/jackrabbit/core/jndi/provider/*.class
-                        </Embed-Dependency>
-                    </instructions>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
@@ -83,8 +60,7 @@
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
-            <artifactId>osgi.annotation</artifactId>
-            <version>6.0.1</version>
+            <artifactId>org.osgi.annotation.versioning</artifactId>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
