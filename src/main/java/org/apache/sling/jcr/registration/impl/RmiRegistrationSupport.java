@@ -35,6 +35,8 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.propertytypes.ServiceDescription;
+import org.osgi.service.component.propertytypes.ServiceVendor;
 import org.osgi.service.log.LogService;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
@@ -52,10 +54,6 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 @Component(
         configurationPolicy = ConfigurationPolicy.REQUIRE,
         name = "org.apache.sling.jcr.jackrabbit.server.RmiRegistrationSupport",
-        property = {
-                "service.vendor=The Apache Software Foundation",
-                "service.description=RMI based Repository Registration"
-        },
         reference = {
                 @Reference(name = "Repository", policy = ReferencePolicy.DYNAMIC,
                         cardinality = ReferenceCardinality.MULTIPLE, service = Repository.class),
@@ -65,6 +63,8 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
         }
 )
 @Designate(ocd = RmiRegistrationSupport.Configuration.class)
+@ServiceVendor("The Apache Software Foundation")
+@ServiceDescription("RMI based Repository Registration")
 public class RmiRegistrationSupport extends AbstractRegistrationSupport {
     public static final String PROP_REGISTRY_PORT = "port";
 

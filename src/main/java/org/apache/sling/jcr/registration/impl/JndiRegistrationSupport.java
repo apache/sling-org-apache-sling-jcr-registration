@@ -34,6 +34,8 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.propertytypes.ServiceDescription;
+import org.osgi.service.component.propertytypes.ServiceVendor;
 import org.osgi.service.log.LogService;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
@@ -53,13 +55,8 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 @Component(
         configurationPolicy = ConfigurationPolicy.REQUIRE,
         name = "org.apache.sling.jcr.jackrabbit.server.JndiRegistrationSupport",
-        property = {
-                "service.vendor=The Apache Software Foundation",
-                "service.description=JNDI Repository Registration"
-        },
         reference = {
                 @Reference(name = "Repository", policy = ReferencePolicy.DYNAMIC,
-                        bind = "bindRepository", unbind = "unbindRepository",
                         cardinality = ReferenceCardinality.MULTIPLE, service = Repository.class),
                 @Reference(name = "Log", policy = ReferencePolicy.DYNAMIC,
                         bind = "bindLog", unbind = "unbindLog",
@@ -67,6 +64,8 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
         }
 )
 @Designate(ocd = JndiRegistrationSupport.Configuration.class)
+@ServiceVendor("The Apache Software Foundation")
+@ServiceDescription("JNDI Repository Registration")
 public class JndiRegistrationSupport extends AbstractRegistrationSupport {
 
     private Context jndiContext;

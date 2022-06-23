@@ -1,0 +1,10 @@
+Bundle-Category: sling,jcr
+
+Import-Package:\
+    javax.transaction.xa;resolution:=optional,\
+    *
+
+DynamicImport-Package: *
+
+-includeresource:\
+    @jackrabbit-core-*.jar!/org/apache/jackrabbit/core/jndi/provider/*.class
