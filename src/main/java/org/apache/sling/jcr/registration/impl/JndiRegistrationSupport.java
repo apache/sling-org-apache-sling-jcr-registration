@@ -77,12 +77,12 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
         @AttributeDefinition(
                 name = "Initial Context Factory",
                 description = "The fully qualified class name of the factory class that will create an initial context.")
-        String java_naming_factory_initial() default "org.apache.jackrabbit.core.jndi.provider.DummyInitialContextFactory";
+        String java_naming_factory_initial() default "org.apache.jackrabbit.core.jndi.provider.DummyInitialContextFactory"; //NOSONAR
 
         @AttributeDefinition(
                 name = "Provider URL",
                 description = "An URL string for the service provider (e.g. ldap://somehost:389)")
-        String java_naming_provider_url() default "http://sling.apache.org";
+        String java_naming_provider_url() default "http://sling.apache.org"; //NOSONAR
 
     }
 
@@ -178,10 +178,5 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
     @Reference(service = LoggerFactory.class)
     protected void bindLogger(Logger logger) {
         super.bindLogger(logger);
-    }
-
-    @Override
-    protected void unbindLogger(Logger logger) {
-        super.unbindLogger(logger);
     }
 }

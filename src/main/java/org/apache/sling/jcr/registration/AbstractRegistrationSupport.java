@@ -55,7 +55,7 @@ public abstract class AbstractRegistrationSupport {
      * service as a reference or call the {@link #bindLogger(Logger)} to enable
      * logging correctly.
      */
-    protected volatile Logger logger;
+    protected Logger logger;
 
     /**
      * The OSGi ComponentContext.

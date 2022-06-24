@@ -120,7 +120,7 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
             return false;
         } else if (this.registryPort == 0) {
             this.registryPort = Registry.REGISTRY_PORT;
-        } else if (this.registryPort == 0 || this.registryPort > 0xffff) {
+        } else if (this.registryPort > 0xffff) {
             logger.warn("Illegal RMI registry port number {} disabling RMI registry", this.registryPort);
             return false;
         }
@@ -254,9 +254,9 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
 
             try {
                 // check whether we have a private registry already
-                Registry registry = RmiRegistrationSupport.this.getPrivateRegistry();
-                if (registry != null) {
-                    registry.bind(rmiName, this.rmiRepository);
+                Registry privateRegistry = RmiRegistrationSupport.this.getPrivateRegistry();
+                if (privateRegistry != null) {
+                    privateRegistry.bind(rmiName, this.rmiRepository);
                     this.rmiName = rmiName;
                     logger.info("Repository bound to {}", this.getRmiURL());
                 }
@@ -273,8 +273,11 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
             // unregister repository
             if (this.rmiName != null) {
                 try {
-                    RmiRegistrationSupport.this.getPrivateRegistry().unbind(this.rmiName);
-                    logger.info("Repository unbound from {}", this.getRmiURL());
+                    Registry privateRegistry = RmiRegistrationSupport.this.getPrivateRegistry();
+                    if (privateRegistry != null) {
+                        privateRegistry.unbind(this.rmiName);
+                        logger.info("Repository unbound from {}", this.getRmiURL());
+                    }
                 } catch (Exception e) {
                     logger.error("Error while unbinding repository from JNDI: ", e);
                 }
@@ -296,10 +299,5 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
     @Reference(service = LoggerFactory.class)
     protected void bindLogger(Logger logger) {
         super.bindLogger(logger);
-    }
-
-    @Override
-    protected void unbindLogger(Logger logger) {
-        super.unbindLogger(logger);
     }
 }
