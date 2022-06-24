@@ -36,8 +36,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.propertytypes.ServiceDescription;
-import org.osgi.service.component.propertytypes.ServiceVendor;
-import org.osgi.service.log.LogService;
+import org.osgi.service.log.Logger;
+import org.osgi.service.log.LoggerFactory;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -56,16 +56,13 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
         name = "org.apache.sling.jcr.jackrabbit.server.RmiRegistrationSupport",
         reference = {
                 @Reference(name = "Repository", policy = ReferencePolicy.DYNAMIC,
-                        cardinality = ReferenceCardinality.MULTIPLE, service = Repository.class),
-                @Reference(name = "Log", policy = ReferencePolicy.DYNAMIC,
-                        bind = "bindLog", unbind = "unbindLog",
-                        cardinality = ReferenceCardinality.OPTIONAL, service = LogService.class),
+                        cardinality = ReferenceCardinality.MULTIPLE, service = Repository.class)
         }
 )
 @Designate(ocd = RmiRegistrationSupport.Configuration.class)
-@ServiceVendor("The Apache Software Foundation")
 @ServiceDescription("RMI based Repository Registration")
 public class RmiRegistrationSupport extends AbstractRegistrationSupport {
+
     public static final String PROP_REGISTRY_PORT = "port";
 
     private int registryPort;
@@ -88,7 +85,7 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
                 description = "Port number of the RMI registry to use. The RMI Registrar first tries to " +
                         "create a private RMI registry at this port. If this fails, an existing registry " +
                         "is tried to connect at this port on local host. If this number is negative, " +
-                        "the RMI egistrar is disabled. If this number is higher than 65535, an error " +
+                        "the RMI registrar is disabled. If this number is higher than 65535, an error " +
                         "message is logged and the RMI Registrar is also  disabled. If this number is " +
                         "zero, the system default RMI Registry port 1099 is used.")
         int port() default 1099;
@@ -119,21 +116,16 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
 
         // ensure correct value
         if (this.registryPort < 0) {
-            this.log(LogService.LOG_WARNING,
-                "RMI registry disabled (no or negative RMI port configured)",
-                null);
+            logger.warn("RMI registry disabled (no or negative RMI port configured)");
             return false;
         } else if (this.registryPort == 0) {
             this.registryPort = Registry.REGISTRY_PORT;
         } else if (this.registryPort == 0 || this.registryPort > 0xffff) {
-            this.log(LogService.LOG_WARNING,
-                "Illegal RMI registry port number " + this.registryPort
-                    + ", disabling RMI registry", null);
+            logger.warn("Illegal RMI registry port number {} disabling RMI registry", this.registryPort);
             return false;
         }
 
-        this.log(LogService.LOG_INFO, "Using RMI Registry port "
-            + this.registryPort, null);
+        logger.info("Using RMI Registry port {}", this.registryPort);
         return true;
     }
 
@@ -148,13 +140,10 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
         if (this.registry != null && this.registryIsPrivate) {
             try {
                 UnicastRemoteObject.unexportObject(this.registry, true);
-                this.log(LogService.LOG_INFO,
-                    "Unexported private RMI Registry at " + this.registryPort,
-                    null);
+                logger.info("Unexported private RMI Registry at {}", this.registryPort);
             } catch (NoSuchObjectException nsoe) {
                 // not expected, but don't really care either
-                this.log(LogService.LOG_INFO,
-                    "Cannot unexport private RMI Registry reference", nsoe);
+                logger.info("Cannot unexport private RMI Registry reference", nsoe);
             }
         }
         this.registry = null;
@@ -186,28 +175,19 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
                 // no, so try to create first
                 this.registry = LocateRegistry.createRegistry(this.registryPort);
                 this.registryIsPrivate = true;
-                this.log(LogService.LOG_INFO, "Using private RMI Registry at "
-                    + this.registryPort, null);
+                logger.info("Using private RMI Registry at {}", this.registryPort);
 
             } catch (RemoteException re) {
                 // creating failed, check whether there is already one
-                this.log(LogService.LOG_INFO,
-                    "Cannot create private registry, trying existing registry at "
-                        + this.registryPort + ", reason: " + re.toString(),
-                    null);
+                logger.info("Cannot create private registry, trying existing registry at {}, reason: {}", this.registryPort, re);
 
                 try {
                     this.registry = LocateRegistry.getRegistry(this.registryPort);
                     this.registryIsPrivate = false;
-                    this.log(LogService.LOG_INFO,
-                        "Trying existing registry at " + this.registryPort,
-                        null);
+                    logger.info("Trying existing registry at {}", this.registryPort);
 
                 } catch (RemoteException pre) {
-                    this.log(
-                        LogService.LOG_ERROR,
-                        "Cannot get existing registry, will not register repositories on RMI",
-                        pre);
+                    logger.error("Cannot get existing registry, will not register repositories on RMI", pre);
                 }
             }
         }
@@ -265,14 +245,10 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
                 RemoteAdapterFactory raf = getRemoteAdapterFactory();
                 this.rmiRepository = raf.getRemoteRepository(repository);
             } catch (RemoteException e) {
-                RmiRegistrationSupport.this.log(LogService.LOG_ERROR,
-                    "Unable to create remote repository.", e);
+                logger.error("Unable to create remote repository.", e);
                 return;
             } catch (Exception e) {
-                RmiRegistrationSupport.this.log(
-                    LogService.LOG_ERROR,
-                    "Unable to create RMI repository. jcr-rmi.jar might be missing.",
-                    e);
+                logger.error("Unable to create RMI repository. jcr-rmi.jar might be missing.", e);
                 return;
             }
 
@@ -282,19 +258,14 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
                 if (registry != null) {
                     registry.bind(rmiName, this.rmiRepository);
                     this.rmiName = rmiName;
-                    RmiRegistrationSupport.this.log(LogService.LOG_INFO,
-                        "Repository bound to " + this.getRmiURL(), null);
+                    logger.info("Repository bound to {}", this.getRmiURL());
                 }
 
             } catch (NoSuchObjectException nsoe) {
                 // the registry does not really exist
-                RmiRegistrationSupport.this.log(LogService.LOG_WARNING,
-                    "Cannot contact RMI registry at "
-                        + RmiRegistrationSupport.this.registryPort
-                        + ", repository not registered", null);
+                logger.warn("Cannot contact RMI registry at {}, repository not registered", RmiRegistrationSupport.this.registryPort);
             } catch (Exception e) {
-                RmiRegistrationSupport.this.log(LogService.LOG_ERROR,
-                    "Unable to bind repository via RMI.", e);
+                logger.error("Unable to bind repository via RMI.", e);
             }
         }
 
@@ -302,14 +273,10 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
             // unregister repository
             if (this.rmiName != null) {
                 try {
-                    RmiRegistrationSupport.this.getPrivateRegistry().unbind(
-                        this.rmiName);
-                    RmiRegistrationSupport.this.log(LogService.LOG_INFO,
-                        "Repository unbound from " + this.getRmiURL(), null);
+                    RmiRegistrationSupport.this.getPrivateRegistry().unbind(this.rmiName);
+                    logger.info("Repository unbound from {}", this.getRmiURL());
                 } catch (Exception e) {
-                    RmiRegistrationSupport.this.log(LogService.LOG_ERROR,
-                        "Error while unbinding repository from JNDI: " + e,
-                        null);
+                    logger.error("Error while unbinding repository from JNDI: ", e);
                 }
             }
 
@@ -319,20 +286,20 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
                     UnicastRemoteObject.unexportObject(this.rmiRepository, true);
                 } catch (NoSuchObjectException nsoe) {
                     // not expected, but don't really care either
-                    RmiRegistrationSupport.this.log(LogService.LOG_INFO,
-                        "Cannot unexport remote Repository reference", nsoe);
+                    logger.info("Cannot unexport remote Repository reference", nsoe);
                 }
             }
         }
     }
 
     @Override
-    protected void bindLog(LogService log) {
-        super.bindLog(log);
+    @Reference(service = LoggerFactory.class)
+    protected void bindLogger(Logger logger) {
+        super.bindLogger(logger);
     }
 
     @Override
-    protected void unbindLog(LogService log) {
-        super.unbindLog(log);
+    protected void unbindLogger(Logger logger) {
+        super.unbindLogger(logger);
     }
 }

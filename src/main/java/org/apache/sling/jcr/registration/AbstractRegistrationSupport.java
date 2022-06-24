@@ -26,7 +26,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentContext;
-import org.osgi.service.log.LogService;
+import org.osgi.service.log.Logger;
 
 /**
  * The <code>AbstractRegistrationSupport</code> class is the base class for
@@ -51,11 +51,11 @@ public abstract class AbstractRegistrationSupport {
     public static final String REPOSITORY_REGISTRATION_NAME = "name";
 
     /**
-     * The LogService for logging. Extensions of this class must declare the log
-     * service as a reference or call the {@link #bindLog(LogService)} to enable
+     * The Logger for logging. Extensions of this class must declare the log
+     * service as a reference or call the {@link #bindLogger(Logger)} to enable
      * logging correctly.
      */
-    private volatile LogService log;
+    protected volatile Logger logger;
 
     /**
      * The OSGi ComponentContext.
@@ -66,13 +66,13 @@ public abstract class AbstractRegistrationSupport {
      * The (possibly empty) map of repositories which have been bound to the
      * registry before the registry has been activated.
      */
-    private final Map<String, ServiceReference> repositoryRegistrationBacklog = new HashMap<String, ServiceReference>();
+    private final Map<String, ServiceReference> repositoryRegistrationBacklog = new HashMap<>();
 
     /**
      * The map of repositories which have been bound to the registry component
      * and which are actually registered with the registry.
      */
-    private final Map<String, Object> registeredRepositories = new HashMap<String, Object>();
+    private final Map<String, Object> registeredRepositories = new HashMap<>();
 
     /**
      * A lock to serialize access to the registry management in this class.
@@ -165,30 +165,6 @@ public abstract class AbstractRegistrationSupport {
     }
 
     /**
-     * Logs a message with optional <code>Throwable</code> stack trace to the
-     * log service or <code>stderr</code> if no log service is available.
-     *
-     * @param level The <code>LogService</code> level at which to log the
-     *            message.
-     * @param message The message to log, this should of course not be
-     *            <code>null</code>.
-     * @param t The <code>Throwable</code> to log along with the message. This
-     *            may be <code>null</code>.
-     */
-    protected void log(int level, String message, Throwable t) {
-        LogService log = this.log;
-        if (log != null) {
-            log.log(level, message, t);
-        } else {
-            System.err.print(level + " - " + message);
-            if (t != null) {
-                t.printStackTrace(System.err);
-            }
-        }
-
-    }
-
-    /**
      * Returns the <code>name</code> property from the service properties or
      * <code>null</code> if no such property exists or the property is an
      * empty string.
@@ -200,8 +176,7 @@ public abstract class AbstractRegistrationSupport {
     protected String getName(ServiceReference reference) {
         String name = (String) reference.getProperty(REPOSITORY_REGISTRATION_NAME);
         if (name == null || name.length() == 0) {
-            log(LogService.LOG_DEBUG,
-                    "registerRepository: Repository not to be registered", null);
+            logger.debug("registerRepository: Repository not to be registered");
             return null;
         }
 
@@ -301,9 +276,7 @@ public abstract class AbstractRegistrationSupport {
                 }
             }
         } else {
-            this.log(LogService.LOG_INFO, "Service "
-                + reference.getProperty(Constants.SERVICE_ID)
-                + " has no name property, not registering", null);
+            logger.info("Service {} has no name property, not registering", reference.getProperty(Constants.SERVICE_ID));
         }
     }
 
@@ -336,21 +309,19 @@ public abstract class AbstractRegistrationSupport {
                 }
             }
         } else {
-            this.log(LogService.LOG_DEBUG, "Service "
-                + reference.getProperty(Constants.SERVICE_ID)
-                + " has no name property, nothing to unregister", null);
+            logger.info("Service {} has no name property, not registering", reference.getProperty(Constants.SERVICE_ID));
         }
     }
 
-    /** Binds the LogService */
-    protected void bindLog(LogService log) {
-        this.log = log;
+    /** Binds the Logger */
+    protected void bindLogger(Logger logger) {
+        this.logger = logger;
     }
 
-    /** Unbinds the LogService */
-    protected void unbindLog(LogService log) {
-        if ( this.log == log ) {
-            this.log = null;
+    /** Unbinds the Logger */
+    protected void unbindLogger(Logger logger) {
+        if ( this.logger == logger ) {
+            this.logger = null;
         }
     }
 

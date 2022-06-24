@@ -35,12 +35,12 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.propertytypes.ServiceDescription;
-import org.osgi.service.component.propertytypes.ServiceVendor;
-import org.osgi.service.log.LogService;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
+import org.osgi.service.log.LoggerFactory;
+import org.osgi.service.log.Logger;
 
 /**
  * The <code>JndiRegistrationSupport</code> extends the
@@ -57,14 +57,10 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
         name = "org.apache.sling.jcr.jackrabbit.server.JndiRegistrationSupport",
         reference = {
                 @Reference(name = "Repository", policy = ReferencePolicy.DYNAMIC,
-                        cardinality = ReferenceCardinality.MULTIPLE, service = Repository.class),
-                @Reference(name = "Log", policy = ReferencePolicy.DYNAMIC,
-                        bind = "bindLog", unbind = "unbindLog",
-                        cardinality = ReferenceCardinality.OPTIONAL, service = LogService.class),
+                        cardinality = ReferenceCardinality.MULTIPLE, service = Repository.class)
         }
 )
 @Designate(ocd = JndiRegistrationSupport.Configuration.class)
-@ServiceVendor("The Apache Software Foundation")
 @ServiceDescription("JNDI Repository Registration")
 public class JndiRegistrationSupport extends AbstractRegistrationSupport {
 
@@ -90,7 +86,7 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
 
     }
 
-    // ---------- SCR intergration ---------------------------------------------
+    // ---------- SCR integration ---------------------------------------------
 
     @Override
     protected boolean doActivate() {
@@ -107,17 +103,11 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
         try {
             // create the JNDI context for registration
             this.jndiContext = this.createInitialContext(env);
-
-            this.log(LogService.LOG_INFO, "Using JNDI context "
-                + this.jndiContext.getEnvironment() + " to register repositories",
-                null);
+            logger.info("Using JNDI context {} to register repositories", this.jndiContext.getEnvironment());
 
             return true;
         } catch (NamingException ne) {
-            this.log(
-                LogService.LOG_ERROR,
-                "Problem setting up JNDI initial context, repositories will not be registered. Reason: "
-                    + ne.getMessage(), null);
+            logger.error("Problem setting up JNDI initial context, repositories will not be registered. Reason: {}", ne.getMessage());
         }
 
         // fallback to false
@@ -130,7 +120,7 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
             try {
                 this.jndiContext.close();
             } catch (NamingException ne) {
-                this.log(LogService.LOG_INFO, "Problem closing JNDI context", ne);
+                logger.info("Problem closing JNDI context", ne);
             }
 
             this.jndiContext = null;
@@ -139,16 +129,14 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
 
     private Context createInitialContext(final Properties env) throws NamingException {
         try {
-            return AccessController.doPrivileged(new PrivilegedExceptionAction<Context>() {
-                public Context run() throws NamingException {
-                    Thread currentThread = Thread.currentThread();
-                    ClassLoader old = currentThread.getContextClassLoader();
-                    currentThread.setContextClassLoader(JndiRegistrationSupport.this.getClass().getClassLoader());
-                    try {
-                        return new InitialContext(env);
-                    } finally {
-                        currentThread.setContextClassLoader(old);
-                    }
+            return AccessController.doPrivileged((PrivilegedExceptionAction<Context>) () -> {
+                Thread currentThread = Thread.currentThread();
+                ClassLoader old = currentThread.getContextClassLoader();
+                currentThread.setContextClassLoader(JndiRegistrationSupport.this.getClass().getClassLoader());
+                try {
+                    return new InitialContext(env);
+                } finally {
+                    currentThread.setContextClassLoader(old);
                 }
             });
         } catch (PrivilegedActionException pae) {
@@ -163,11 +151,10 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
         if (this.jndiContext != null) {
             try {
                 this.jndiContext.bind(name, repository);
-                this.log(LogService.LOG_INFO, "Repository bound to JNDI as " + name,
-                    null);
+                logger.info("Repository bound to JNDI as {}", name);
                 return repository;
             } catch (NamingException ne) {
-                this.log(LogService.LOG_ERROR, "Failed to register repository " + name, ne);
+                logger.error("Failed to register repository {}", name, ne);
             }
         }
 
@@ -180,22 +167,21 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
         if (this.jndiContext != null) {
             try {
                 this.jndiContext.unbind(name);
-                this.log(LogService.LOG_INFO, "Repository " + name
-                    + " unbound from JNDI", null);
+                logger.info("Repository {} unbound from JNDI", name);
             } catch (NamingException ne) {
-                this.log(LogService.LOG_ERROR, "Problem unregistering repository "
-                    + name, ne);
+                logger.error("Problem unregistering repository {}", name, ne);
             }
         }
     }
 
     @Override
-    protected void bindLog(LogService log) {
-        super.bindLog(log);
+    @Reference(service = LoggerFactory.class)
+    protected void bindLogger(Logger logger) {
+        super.bindLogger(logger);
     }
 
     @Override
-    protected void unbindLog(LogService log) {
-        super.unbindLog(log);
+    protected void unbindLogger(Logger logger) {
+        super.unbindLogger(logger);
     }
 }
