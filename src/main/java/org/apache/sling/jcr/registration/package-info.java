@@ -21,9 +21,9 @@
  * The <code>org.apache.sling.jcr.registration</code> package exports
  * the {@link org.apache.sling.jcr.registration.AbstractRegistrationSupport}
  * class which may be extended by service exposing JCR Repository services
- * in any one non-OSGi registry such as RMI or JNDI.
+ * in anyone non-OSGi registry such as RMI or JNDI.
  */
-@Version("1.1.1")
+@Version("2.0.0")
 package org.apache.sling.jcr.registration;
 
 
