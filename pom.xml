@@ -23,6 +23,7 @@
         <groupId>org.apache.sling</groupId>
         <artifactId>sling-bundle-parent</artifactId>
         <version>48</version>
+        <relativePath />
     </parent>
 
     <artifactId>org.apache.sling.jcr.registration</artifactId>
