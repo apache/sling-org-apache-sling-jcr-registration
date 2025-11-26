@@ -1,20 +1,27 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.jcr.registration.impl;
+
+import javax.jcr.Repository;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
@@ -23,11 +30,6 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Properties;
 
-import javax.jcr.Repository;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-
 import org.apache.sling.jcr.registration.AbstractRegistrationSupport;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -35,12 +37,11 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.propertytypes.ServiceDescription;
+import org.osgi.service.log.Logger;
+import org.osgi.service.log.LoggerFactory;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
-
-import org.osgi.service.log.LoggerFactory;
-import org.osgi.service.log.Logger;
 
 /**
  * The <code>JndiRegistrationSupport</code> extends the
@@ -56,10 +57,12 @@ import org.osgi.service.log.Logger;
         configurationPolicy = ConfigurationPolicy.REQUIRE,
         name = "org.apache.sling.jcr.jackrabbit.server.JndiRegistrationSupport",
         reference = {
-                @Reference(name = "Repository", policy = ReferencePolicy.DYNAMIC,
-                        cardinality = ReferenceCardinality.MULTIPLE, service = Repository.class)
-        }
-)
+            @Reference(
+                    name = "Repository",
+                    policy = ReferencePolicy.DYNAMIC,
+                    cardinality = ReferenceCardinality.MULTIPLE,
+                    service = Repository.class)
+        })
 @Designate(ocd = JndiRegistrationSupport.Configuration.class)
 @ServiceDescription("JNDI Repository Registration")
 public class JndiRegistrationSupport extends AbstractRegistrationSupport {
@@ -68,22 +71,24 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
 
     // ---------- Configuration ---------------------------------------------
 
-    @ObjectClassDefinition(name = "Apache Sling JCR Repository JNDI Registrar",
-            description = "The JNDI Registrar listens for embedded repositories " +
-                    "to be registered as services and registers them in the JNDI context under the " +
-                    "name specified in the \"name\" service property.")
+    @ObjectClassDefinition(
+            name = "Apache Sling JCR Repository JNDI Registrar",
+            description = "The JNDI Registrar listens for embedded repositories "
+                    + "to be registered as services and registers them in the JNDI context under the "
+                    + "name specified in the \"name\" service property.")
     public @interface Configuration {
 
         @AttributeDefinition(
                 name = "Initial Context Factory",
-                description = "The fully qualified class name of the factory class that will create an initial context.")
-        String java_naming_factory_initial() default "org.apache.jackrabbit.core.jndi.provider.DummyInitialContextFactory"; //NOSONAR
+                description =
+                        "The fully qualified class name of the factory class that will create an initial context.")
+        String java_naming_factory_initial() default
+                "org.apache.jackrabbit.core.jndi.provider.DummyInitialContextFactory"; // NOSONAR
 
         @AttributeDefinition(
                 name = "Provider URL",
                 description = "An URL string for the service provider (e.g. ldap://somehost:389)")
-        String java_naming_provider_url() default "http://sling.apache.org"; //NOSONAR
-
+        String java_naming_provider_url() default "http://sling.apache.org"; // NOSONAR
     }
 
     // ---------- SCR integration ---------------------------------------------
@@ -93,7 +98,7 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
         @SuppressWarnings("unchecked")
         Dictionary<String, Object> props = this.getComponentContext().getProperties();
         Properties env = new Properties();
-        for (Enumeration<String> pe = props.keys(); pe.hasMoreElements();) {
+        for (Enumeration<String> pe = props.keys(); pe.hasMoreElements(); ) {
             String key = pe.nextElement();
             if (key.startsWith("java.naming.")) {
                 env.setProperty(key, (String) props.get(key));
@@ -107,7 +112,9 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
 
             return true;
         } catch (NamingException ne) {
-            logger.error("Problem setting up JNDI initial context, repositories will not be registered. Reason: {}", ne.getMessage());
+            logger.error(
+                    "Problem setting up JNDI initial context, repositories will not be registered. Reason: {}",
+                    ne.getMessage());
         }
 
         // fallback to false
@@ -132,7 +139,8 @@ public class JndiRegistrationSupport extends AbstractRegistrationSupport {
             return AccessController.doPrivileged((PrivilegedExceptionAction<Context>) () -> {
                 Thread currentThread = Thread.currentThread();
                 ClassLoader old = currentThread.getContextClassLoader();
-                currentThread.setContextClassLoader(JndiRegistrationSupport.this.getClass().getClassLoader());
+                currentThread.setContextClassLoader(
+                        JndiRegistrationSupport.this.getClass().getClassLoader());
                 try {
                     return new InitialContext(env);
                 } finally {

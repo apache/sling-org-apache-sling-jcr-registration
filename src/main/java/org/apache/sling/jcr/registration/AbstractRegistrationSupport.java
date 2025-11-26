@@ -1,26 +1,28 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.jcr.registration;
+
+import javax.jcr.Repository;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
-import javax.jcr.Repository;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -207,18 +209,18 @@ public abstract class AbstractRegistrationSupport {
 
             if (this.doActivate()) {
                 // register all repositories in the tmp map
-                for (Iterator<Map.Entry<String, ServiceReference>> ri = this.repositoryRegistrationBacklog.entrySet().iterator(); ri.hasNext();) {
+                for (Iterator<Map.Entry<String, ServiceReference>> ri =
+                                this.repositoryRegistrationBacklog.entrySet().iterator();
+                        ri.hasNext(); ) {
                     Map.Entry<String, ServiceReference> entry = ri.next();
 
-                    this.bindRepositoryInternal(entry.getKey(),
-                        entry.getValue());
+                    this.bindRepositoryInternal(entry.getKey(), entry.getValue());
 
                     ri.remove();
                 }
             } else {
                 // disable this component
-                String name = (String) componentContext.getProperties().get(
-                    ComponentConstants.COMPONENT_NAME);
+                String name = (String) componentContext.getProperties().get(ComponentConstants.COMPONENT_NAME);
                 this.getComponentContext().disableComponent(name);
             }
         }
@@ -241,7 +243,9 @@ public abstract class AbstractRegistrationSupport {
         synchronized (this.registryLock) {
 
             // unregister all repositories in the tmp map
-            for (Iterator<Map.Entry<String, Object>> ri = this.registeredRepositories.entrySet().iterator(); ri.hasNext();) {
+            for (Iterator<Map.Entry<String, Object>> ri =
+                            this.registeredRepositories.entrySet().iterator();
+                    ri.hasNext(); ) {
                 Map.Entry<String, Object> entry = ri.next();
 
                 this.unbindRepository(entry.getKey(), entry.getValue());
@@ -276,7 +280,8 @@ public abstract class AbstractRegistrationSupport {
                 }
             }
         } else {
-            logger.info("Service {} has no name property, not registering", reference.getProperty(Constants.SERVICE_ID));
+            logger.info(
+                    "Service {} has no name property, not registering", reference.getProperty(Constants.SERVICE_ID));
         }
     }
 
@@ -309,7 +314,8 @@ public abstract class AbstractRegistrationSupport {
                 }
             }
         } else {
-            logger.info("Service {} has no name property, not registering", reference.getProperty(Constants.SERVICE_ID));
+            logger.info(
+                    "Service {} has no name property, not registering", reference.getProperty(Constants.SERVICE_ID));
         }
     }
 
@@ -320,12 +326,12 @@ public abstract class AbstractRegistrationSupport {
 
     /** Unbinds the Logger */
     protected void unbindLogger(Logger logger) {
-        if ( this.logger == logger ) {
+        if (this.logger == logger) {
             this.logger = null;
         }
     }
 
-    //---------- internal -----------------------------------------------------
+    // ---------- internal -----------------------------------------------------
 
     /**
      * Internal bind method called by {@link #activate(ComponentContext)} and
@@ -334,12 +340,11 @@ public abstract class AbstractRegistrationSupport {
      * {@link #bindRepository(String, Repository)} method.
      */
     private void bindRepositoryInternal(String name, ServiceReference reference) {
-        Repository repository = (Repository) this.getComponentContext().getBundleContext().getService(
-            reference);
+        Repository repository =
+                (Repository) this.getComponentContext().getBundleContext().getService(reference);
         Object data = this.bindRepository(name, repository);
         if (data != null) {
             this.registeredRepositories.put(name, data);
         }
     }
-
 }

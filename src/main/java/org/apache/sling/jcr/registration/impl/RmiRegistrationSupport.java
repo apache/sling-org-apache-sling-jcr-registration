@@ -1,20 +1,24 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.sling.jcr.registration.impl;
+
+import javax.jcr.Repository;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -24,8 +28,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-
-import javax.jcr.Repository;
 
 import org.apache.jackrabbit.rmi.server.RemoteAdapterFactory;
 import org.apache.jackrabbit.rmi.server.ServerAdapterFactory;
@@ -50,15 +52,16 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
  * Note: Currently only registries in this Java VM are supported. In the future
  * support for external registries may be added.
  */
-
 @Component(
         configurationPolicy = ConfigurationPolicy.REQUIRE,
         name = "org.apache.sling.jcr.jackrabbit.server.RmiRegistrationSupport",
         reference = {
-                @Reference(name = "Repository", policy = ReferencePolicy.DYNAMIC,
-                        cardinality = ReferenceCardinality.MULTIPLE, service = Repository.class)
-        }
-)
+            @Reference(
+                    name = "Repository",
+                    policy = ReferencePolicy.DYNAMIC,
+                    cardinality = ReferenceCardinality.MULTIPLE,
+                    service = Repository.class)
+        })
 @Designate(ocd = RmiRegistrationSupport.Configuration.class)
 @ServiceDescription("RMI based Repository Registration")
 public class RmiRegistrationSupport extends AbstractRegistrationSupport {
@@ -74,20 +77,21 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
 
     // ---------- Configuration ---------------------------------------------
 
-    @ObjectClassDefinition(name = "Apache Sling JCR Repository RMI Registrar",
-            description = "The RMI Registrar listens for embedded repositories " +
-                    " to be registered as services and registers them in an RMI registry under the " +
-                    " name specified in the \"name\" service property.")
+    @ObjectClassDefinition(
+            name = "Apache Sling JCR Repository RMI Registrar",
+            description = "The RMI Registrar listens for embedded repositories "
+                    + " to be registered as services and registers them in an RMI registry under the "
+                    + " name specified in the \"name\" service property.")
     public @interface Configuration {
 
         @AttributeDefinition(
                 name = "Port Number",
-                description = "Port number of the RMI registry to use. The RMI Registrar first tries to " +
-                        "create a private RMI registry at this port. If this fails, an existing registry " +
-                        "is tried to connect at this port on local host. If this number is negative, " +
-                        "the RMI registrar is disabled. If this number is higher than 65535, an error " +
-                        "message is logged and the RMI Registrar is also  disabled. If this number is " +
-                        "zero, the system default RMI Registry port 1099 is used.")
+                description = "Port number of the RMI registry to use. The RMI Registrar first tries to "
+                        + "create a private RMI registry at this port. If this fails, an existing registry "
+                        + "is tried to connect at this port on local host. If this number is negative, "
+                        + "the RMI registrar is disabled. If this number is higher than 65535, an error "
+                        + "message is logged and the RMI Registrar is also  disabled. If this number is "
+                        + "zero, the system default RMI Registry port 1099 is used.")
         int port() default 1099;
     }
 
@@ -102,8 +106,7 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
     @Override
     protected boolean doActivate() {
 
-        Object portProp = this.getComponentContext().getProperties().get(
-            PROP_REGISTRY_PORT);
+        Object portProp = this.getComponentContext().getProperties().get(PROP_REGISTRY_PORT);
         if (portProp instanceof Number) {
             this.registryPort = ((Number) portProp).intValue();
         } else {
@@ -179,7 +182,10 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
 
             } catch (RemoteException re) {
                 // creating failed, check whether there is already one
-                logger.info("Cannot create private registry, trying existing registry at {}, reason: {}", this.registryPort, re);
+                logger.info(
+                        "Cannot create private registry, trying existing registry at {}, reason: {}",
+                        this.registryPort,
+                        re);
 
                 try {
                     this.registry = LocateRegistry.getRegistry(this.registryPort);
@@ -232,8 +238,7 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
             } catch (IOException ignore) {
                 host = "localhost";
             }
-            return "//" + host + ":" + RmiRegistrationSupport.this.registryPort
-                + "/" + this.getRmiName();
+            return "//" + host + ":" + RmiRegistrationSupport.this.registryPort + "/" + this.getRmiName();
         }
 
         private void register(String rmiName, Repository repository) {
@@ -263,7 +268,9 @@ public class RmiRegistrationSupport extends AbstractRegistrationSupport {
 
             } catch (NoSuchObjectException nsoe) {
                 // the registry does not really exist
-                logger.warn("Cannot contact RMI registry at {}, repository not registered", RmiRegistrationSupport.this.registryPort);
+                logger.warn(
+                        "Cannot contact RMI registry at {}, repository not registered",
+                        RmiRegistrationSupport.this.registryPort);
             } catch (Exception e) {
                 logger.error("Unable to bind repository via RMI.", e);
             }
