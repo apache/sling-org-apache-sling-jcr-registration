@@ -27,7 +27,7 @@
     </parent>
 
     <artifactId>org.apache.sling.jcr.registration</artifactId>
-    <version>1.0.8</version>
+    <version>1.0.9-SNAPSHOT</version>
 
     <name>Apache Sling JCR Repository Registration</name>
     <description>Bundle providing support to publish JCR repository services via RMI and/or JNDI</description>
@@ -35,7 +35,7 @@
     <scm>
         <connection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-jcr-registration.git</connection>
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/sling-org-apache-sling-jcr-registration.git</developerConnection>
-        <tag>org.apache.sling.jcr.registration-1.0.8</tag>
+        <tag>HEAD</tag>
         <url>https://github.com/apache/sling-org-apache-sling-jcr-registration.git</url>
     </scm>
 
