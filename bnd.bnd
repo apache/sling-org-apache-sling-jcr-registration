@@ -2,6 +2,8 @@ Bundle-Category: sling,jcr
 
 Import-Package:\
     javax.transaction.xa;resolution:=optional,\
+    org.apache.jackrabbit.rmi.remote;resolution:=optional,\
+    org.apache.jackrabbit.rmi.server;resolution:=optional,\
     *
 
 DynamicImport-Package: *
